@@ -30,9 +30,9 @@ export default async function handler(req, res) {
             role: 'user',
             content: [
               { type: 'image', source: { type: 'base64', media_type: imageType || 'image/jpeg', data: imageBase64 } },
-              { type: 'text', text: `Extract all items from this shopping list or recipe image. Return ONLY valid JSON, no markdown fences, no preamble:
+              { type: 'text', text: `Extract all items from this image (shopping list, recipe, product label, or handwritten notes). Return ONLY valid JSON, no markdown:
 {"items":[{"name":"product name","quantity":1,"unit":"pcs"}]}
-Be specific with names (e.g. "semi-skimmed milk" not just "milk"). Quantity must be a number. Unit is optional. If no quantity visible use 1.` }
+Be specific. Quantity must be a number. Unit is optional. If no quantity visible use 1.` }
             ]
           }]
         })
@@ -52,9 +52,9 @@ Be specific with names (e.g. "semi-skimmed milk" not just "milk"). Quantity must
       if (!SHOP_DOMAIN || !ADMIN_TOKEN) return res.status(500).json({ error: 'Shopify credentials not configured.' });
       if (!ANTHROPIC_KEY) return res.status(500).json({ error: 'Anthropic API key not configured.' });
 
-      // Fetch all active products from Shopify (up to 250)
+      // Fetch all active products including images
       const shopRes = await fetch(
-        `https://${SHOP_DOMAIN}/admin/api/2024-10/products.json?limit=250&status=active&fields=id,title,variants`,
+        `https://${SHOP_DOMAIN}/admin/api/2024-10/products.json?limit=250&status=active&fields=id,title,variants,images`,
         { headers: { 'X-Shopify-Access-Token': ADMIN_TOKEN, 'Content-Type': 'application/json' } }
       );
       const shopData = await shopRes.json();
@@ -62,19 +62,18 @@ Be specific with names (e.g. "semi-skimmed milk" not just "milk"). Quantity must
 
       if (!products.length) return res.json({ matches: items.map(i => ({ name: i.name, found: false })) });
 
-      // Build flat product list for Claude
       const productList = products.map(p => ({
         id: p.id,
         title: p.title,
         variantId: p.variants?.[0]?.id,
         price: p.variants?.[0]?.price,
+        image: p.images?.[0]?.src || null,
         available: p.variants?.[0]?.inventory_quantity > 0 || p.variants?.[0]?.inventory_management === null
       }));
 
-      const productCatalogue = productList.map((p, i) => `${i}: ${p.title}`).join('\n');
+      const productCatalogue = productList.map((p, i) => `${i}: ${p.title} £${p.price}`).join('\n');
       const itemList = items.map((item, i) => `${i}: ${item.name} (qty: ${item.quantity || 1})`).join('\n');
 
-      // Ask Claude to semantically match items to products
       const matchResp = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -87,21 +86,22 @@ Be specific with names (e.g. "semi-skimmed milk" not just "milk"). Quantity must
           max_tokens: 1000,
           messages: [{
             role: 'user',
-            content: `You are a smart shopping assistant. Match each item from a shopping list to the most suitable product in a store catalogue.
+            content: `You are a smart beauty & haircare shopping assistant. Match each item from a shopping list to the best product in this store catalogue.
 
-SHOPPING LIST ITEMS:
+SHOPPING LIST:
 ${itemList}
 
 STORE PRODUCTS:
 ${productCatalogue}
 
-For each shopping list item, find the best matching product index. Be flexible and intelligent:
-- "eggs" can match "Free Range Eggs 6 Pack"
-- "coriander" can match "Natco Coriander Seeds 100g"
-- "olive oil" can match "Filippo Berio Extra Virgin Olive Oil 500ml"
-Only use -1 if there is genuinely nothing related in the catalogue.
+Be flexible and intelligent with beauty/haircare products:
+- Match by brand, product type, or key ingredients
+- "leave in conditioner" matches "Cantu Leave-In Conditioning Cream"
+- "shea butter" matches any shea butter product
+- "curl cream" matches curl defining products
+Only use -1 if genuinely nothing is related.
 
-Return ONLY valid JSON, no markdown, no explanation:
+Return ONLY valid JSON, no markdown:
 {"matches":[{"itemIndex":0,"productIndex":5},{"itemIndex":1,"productIndex":-1}]}`
           }]
         })
@@ -123,6 +123,7 @@ Return ONLY valid JSON, no markdown, no explanation:
           matchedTitle: product.title,
           variantId: product.variantId,
           price: product.price,
+          image: product.image,
           available: product.available,
           quantity: items[m.itemIndex]?.quantity || 1
         };
