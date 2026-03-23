@@ -9,25 +9,14 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #0d0d0d;
-    --surface: #161616;
-    --surface2: #1f1f1f;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text: #f0ede8;
-    --text2: #888;
-    --text3: #555;
-    --accent: #c8f060;
-    --accent-dim: rgba(200,240,96,0.12);
-    --red-dim: rgba(255,92,92,0.1);
-    --red: #ff5c5c;
-    --teal: #3dd9a4;
-    --teal-dim: rgba(61,217,164,0.1);
-    --amber: #f5a623;
-    --amber-dim: rgba(245,166,35,0.1);
-    --ff: 'DM Sans', sans-serif;
-    --ff-head: 'Syne', sans-serif;
-    --ff-mono: 'DM Mono', monospace;
+    --bg: #0d0d0d; --surface: #161616; --surface2: #1f1f1f;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #f0ede8; --text2: #888; --text3: #555;
+    --accent: #c8f060; --accent-dim: rgba(200,240,96,0.12);
+    --red: #ff5c5c; --red-dim: rgba(255,92,92,0.1);
+    --teal: #3dd9a4; --teal-dim: rgba(61,217,164,0.1);
+    --amber: #f5a623; --amber-dim: rgba(245,166,35,0.1);
+    --ff: 'DM Sans', sans-serif; --ff-head: 'Syne', sans-serif; --ff-mono: 'DM Mono', monospace;
     --r: 10px; --r-lg: 16px;
   }
   html { background: var(--bg); color: var(--text); font-family: var(--ff); }
@@ -96,7 +85,6 @@
 </head>
 <body>
 <div class="page">
-
   <header>
     <div class="logo">
       <div class="logo-icon">
@@ -173,9 +161,9 @@
   function setStep(n) {
     [1,2,3,4].forEach(i => {
       const el = document.getElementById('s'+i);
-      if(i<n){el.className='step-dot done';el.innerHTML='✓';}
-      else if(i===n){el.className='step-dot active';el.innerHTML=i;}
-      else{el.className='step-dot';el.innerHTML=i;}
+      if(i<n){ el.className='step-dot done'; el.innerHTML='✓'; }
+      else if(i===n){ el.className='step-dot active'; el.innerHTML=i; }
+      else{ el.className='step-dot'; el.innerHTML=i; }
     });
   }
 
@@ -185,7 +173,10 @@
     if(type==='info') el.innerHTML = `<div class="spinner"></div><span>${msg}</span>`;
     else el.textContent = msg;
   }
-  function hideStatus(){ const el=document.getElementById('statusMsg'); el.style.display='none'; el.className='status'; }
+  function hideStatus() {
+    const el = document.getElementById('statusMsg');
+    el.style.display = 'none'; el.className = 'status';
+  }
 
   function handleFile(e) {
     const file = e.target.files[0]; if(!file) return;
@@ -203,112 +194,96 @@
     reader.readAsDataURL(file);
   }
 
+  async function callBackend(body) {
+    const resp = await fetch('/api/shopify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if(!resp.ok) { const e = await resp.json().catch(()=>({})); throw new Error(e?.error || `Server error ${resp.status}`); }
+    return resp.json();
+  }
+
   async function analyzeImage() {
-    if(!imageBase64) return showStatus('Please upload an image first.','error');
+    if(!imageBase64) return showStatus('Please upload an image first.', 'error');
     const btn = document.getElementById('analyseBtn');
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner"></div> Reading your list…';
-    showStatus('Analysing image with AI vision…','info'); setStep(2);
+    showStatus('Analysing image with AI vision…', 'info'); setStep(2);
     try {
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model:'claude-sonnet-4-20250514', max_tokens:1000,
-          messages:[{role:'user',content:[
-            {type:'image',source:{type:'base64',media_type:imageType,data:imageBase64}},
-            {type:'text',text:`Extract all items from this shopping list or recipe image. Return ONLY valid JSON, no markdown:
-{"items":[{"name":"product name","quantity":1,"unit":"pcs"}]}
-Be specific with names. Quantity must be a number. Unit is optional.`}
-          ]}]
-        })
-      });
-      if(!resp.ok){ const e=await resp.json().catch(()=>({})); throw new Error(e?.error?.message||`API error ${resp.status}`); }
-      const data = await resp.json();
-      const text = data.content.map(c=>c.text||'').join('');
-      const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
-      extractedItems = parsed.items||[];
+      const result = await callBackend({ action: 'analyse', imageBase64, imageType });
+      extractedItems = result.items || [];
       if(!extractedItems.length) throw new Error('No items found. Try a clearer photo.');
       renderItems();
-      document.getElementById('itemsSection').style.display='block';
+      document.getElementById('itemsSection').style.display = 'block';
       setStep(3);
-      showStatus(`Found ${extractedItems.length} item${extractedItems.length!==1?'s':''}. Deselect any you don\'t need.`,'success');
-    } catch(err){ showStatus('Error: '+(err.message||'Could not read image.'),'error'); }
-    btn.disabled=false;
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Re-extract items';
+      showStatus(`Found ${extractedItems.length} item${extractedItems.length!==1?'s':''}. Deselect any you don\'t need.`, 'success');
+    } catch(err) { showStatus('Error: '+(err.message||'Could not read image.'), 'error'); }
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Re-extract items';
   }
 
   function renderItems() {
-    document.getElementById('itemsList').innerHTML = extractedItems.map((item,i)=>`
+    document.getElementById('itemsList').innerHTML = extractedItems.map((item,i) => `
       <div class="item-row">
         <input type="checkbox" class="item-check" id="chk${i}" checked />
         <label class="item-name" for="chk${i}">${item.name}</label>
-        ${item.quantity?`<span class="item-qty">${item.quantity}${item.unit?' '+item.unit:''}</span>`:''}
+        ${item.quantity ? `<span class="item-qty">${item.quantity}${item.unit?' '+item.unit:''}</span>` : ''}
         <span class="item-tag" id="tag${i}"></span>
       </div>`).join('');
   }
 
-  async function callBackend(body) {
-    const resp = await fetch('/api/shopify', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(body)
-    });
-    if(!resp.ok){ const e=await resp.json().catch(()=>({})); throw new Error(e?.error||`Server error ${resp.status}`); }
-    return resp.json();
-  }
-
   async function searchAndAddToCart() {
-    const checkedItems = extractedItems.filter((_,i)=>document.getElementById('chk'+i)?.checked);
-    if(!checkedItems.length) return showStatus('Select at least one item.','error');
+    const checkedItems = extractedItems.filter((_,i) => document.getElementById('chk'+i)?.checked);
+    if(!checkedItems.length) return showStatus('Select at least one item.', 'error');
     const btn = document.getElementById('cartBtn');
-    btn.disabled=true;
-    btn.innerHTML='<div class="spinner"></div> Searching your store…';
-    showStatus('Searching products in your store…','info');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Searching your store…';
+    showStatus('Searching products in your store…', 'info');
 
     const cartItems = [];
-    for(let i=0;i<extractedItems.length;i++){
+    for(let i=0; i<extractedItems.length; i++) {
       if(!document.getElementById('chk'+i)?.checked) continue;
       const item = extractedItems[i];
       const tag = document.getElementById('tag'+i);
-      tag.className='item-tag searching'; tag.textContent='searching…';
+      tag.className = 'item-tag searching'; tag.textContent = 'searching…';
       try {
-        const result = await callBackend({action:'search', query:item.name});
-        if(result.found && result.available){
-          cartItems.push({variantId:result.variantId, quantity:Math.max(1,Math.round(item.quantity||1)), name:result.title});
-          tag.className='item-tag found'; tag.textContent='✓ found';
-        } else if(result.found && !result.available){
-          tag.className='item-tag not-found'; tag.textContent='out of stock';
+        const result = await callBackend({ action: 'search', query: item.name });
+        if(result.found && result.available) {
+          cartItems.push({ variantId: result.variantId, quantity: Math.max(1, Math.round(item.quantity||1)) });
+          tag.className = 'item-tag found'; tag.textContent = '✓ found';
+        } else if(result.found && !result.available) {
+          tag.className = 'item-tag not-found'; tag.textContent = 'out of stock';
         } else {
-          tag.className='item-tag not-found'; tag.textContent='not found';
+          tag.className = 'item-tag not-found'; tag.textContent = 'not found';
         }
-      } catch(err){ tag.className='item-tag not-found'; tag.textContent='error'; }
+      } catch { tag.className = 'item-tag not-found'; tag.textContent = 'error'; }
     }
 
-    if(!cartItems.length){
-      btn.disabled=false;
-      btn.innerHTML='Retry — no items matched';
-      return showStatus('No matching products found. Make sure products are active in your store.','error');
+    if(!cartItems.length) {
+      btn.disabled = false;
+      btn.innerHTML = 'Retry — no items matched';
+      return showStatus('No matching products found. Make sure products are active in your store.', 'error');
     }
 
-    showStatus('Creating your cart…','info');
+    showStatus('Creating your cart…', 'info');
     try {
-      const result = await callBackend({action:'createCart', cartItems});
+      const result = await callBackend({ action: 'createCart', cartItems });
       if(!result.success) throw new Error('Cart creation failed');
       checkoutUrl = result.checkoutUrl;
-      const found=cartItems.length, total=checkedItems.length;
+      const found = cartItems.length, total = checkedItems.length;
       document.getElementById('cartSummary').textContent =
-        `${found} of ${total} item${total!==1?'s':''} added${total-found>0?` (${total-found} not found)`:'!'}`;
-      document.getElementById('cartSection').style.display='block';
+        `${found} of ${total} item${total!==1?'s':''} added${total-found>0 ? ` (${total-found} not found)` : ' — all matched!'}`;
+      document.getElementById('cartSection').style.display = 'block';
       setStep(4);
-      showStatus(`Cart ready with ${found} item${found!==1?'s':''}!`,'success');
-    } catch(err){ showStatus('Cart error: '+err.message,'error'); }
+      showStatus(`Cart ready with ${found} item${found!==1?'s':''}!`, 'success');
+    } catch(err) { showStatus('Cart error: '+err.message, 'error'); }
 
-    btn.disabled=false;
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg> Search store & add to cart';
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg> Search store & add to cart';
   }
 
-  function openCart(){ if(checkoutUrl) window.open(checkoutUrl,'_blank'); }
+  function openCart() { if(checkoutUrl) window.open(checkoutUrl, '_blank'); }
 </script>
 </body>
 </html>
