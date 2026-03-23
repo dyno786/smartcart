@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Cart — CC Hair & Beauty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1f1f1f;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0ede8;
+    --text2: #888;
+    --text3: #555;
+    --accent: #c8f060;
+    --accent-dim: rgba(200,240,96,0.12);
+    --red-dim: rgba(255,92,92,0.1);
+    --red: #ff5c5c;
+    --teal: #3dd9a4;
+    --teal-dim: rgba(61,217,164,0.1);
+    --amber: #f5a623;
+    --amber-dim: rgba(245,166,35,0.1);
+    --ff: 'DM Sans', sans-serif;
+    --ff-head: 'Syne', sans-serif;
+    --ff-mono: 'DM Mono', monospace;
+    --r: 10px; --r-lg: 16px;
+  }
+  html { background: var(--bg); color: var(--text); font-family: var(--ff); }
+  body {
+    min-height: 100vh; background: var(--bg);
+    background-image:
+      radial-gradient(ellipse 60% 40% at 70% 10%, rgba(200,240,96,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 10% 80%, rgba(61,217,164,0.04) 0%, transparent 50%);
+  }
+  .page { max-width: 560px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+  header { margin-bottom: 2.5rem; }
+  .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .logo-icon { width: 38px; height: 38px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-icon svg { width: 20px; height: 20px; }
+  .logo-name { font-family: var(--ff-head); font-size: 22px; font-weight: 700; color: var(--text); }
+  .logo-tag { font-size: 13px; color: var(--text2); }
+  .steps { display: flex; align-items: center; margin-bottom: 2rem; }
+  .step-dot { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--text3); background: var(--surface); flex-shrink: 0; transition: all 0.3s; }
+  .step-dot.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .step-dot.done { background: var(--teal); color: #000; border-color: var(--teal); font-size: 11px; }
+  .step-line { flex: 1; height: 1px; background: var(--border); }
+  .card-label { font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+  .upload-zone { border: 1.5px dashed var(--border2); border-radius: var(--r-lg); padding: 2.5rem 1rem; text-align: center; cursor: pointer; position: relative; transition: all 0.25s; background: var(--surface); margin-bottom: 1rem; }
+  .upload-zone:hover { border-color: var(--accent); background: rgba(200,240,96,0.03); }
+  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon-wrap { width: 52px; height: 52px; margin: 0 auto 14px; border: 1px solid var(--border2); border-radius: 14px; display: flex; align-items: center; justify-content: center; background: var(--surface2); }
+  .upload-icon-wrap svg { width: 24px; height: 24px; stroke: var(--text2); fill: none; stroke-width: 1.5; }
+  .upload-title { font-family: var(--ff-head); font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
+  .upload-sub { font-size: 13px; color: var(--text2); }
+  .upload-sub span { color: var(--accent); }
+  #previewWrap { display: none; margin-bottom: 1rem; }
+  #previewImg { width: 100%; max-height: 220px; object-fit: contain; border-radius: var(--r); border: 1px solid var(--border); background: var(--surface2); }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px 20px; border-radius: var(--r); font-family: var(--ff); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); }
+  .btn:hover { background: var(--surface); }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  .btn-accent { background: var(--accent); color: #0d0d0d; border-color: var(--accent); font-weight: 700; }
+  .btn-accent:hover { background: #d4f56a; border-color: #d4f56a; }
+  .btn-teal { background: var(--teal); color: #000; border-color: var(--teal); font-weight: 700; }
+  .btn-teal:hover { background: #52e5b2; }
+  .btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .status { padding: 11px 14px; border-radius: var(--r); font-size: 13px; margin-bottom: 1rem; display: none; line-height: 1.5; }
+  .status.info { background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; gap: 8px; }
+  .status.error { background: var(--red-dim); color: var(--red); display: block; }
+  .status.success { background: var(--teal-dim); color: var(--teal); display: flex; align-items: center; gap: 8px; }
+  .items-wrap { margin-bottom: 1rem; }
+  .item-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+  .item-row:last-child { border-bottom: none; }
+  .item-check { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+  .item-name { flex: 1; font-size: 14px; color: var(--text); }
+  .item-qty { font-family: var(--ff-mono); font-size: 11px; color: var(--text3); background: var(--surface2); padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+  .item-tag { font-size: 11px; padding: 2px 9px; border-radius: 20px; flex-shrink: 0; }
+  .item-tag.found { background: var(--teal-dim); color: var(--teal); }
+  .item-tag.not-found { background: var(--amber-dim); color: var(--amber); }
+  .item-tag.searching { background: var(--accent-dim); color: var(--accent); }
+  .cart-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 1rem; }
+  .cart-box-title { font-size: 12px; color: var(--text3); margin-bottom: 4px; }
+  .cart-box-val { font-family: var(--ff-head); font-size: 18px; color: var(--text); }
+  .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+  .spinner { width: 15px; height: 15px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.65s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  footer { margin-top: 3rem; text-align: center; font-size: 12px; color: var(--text3); }
+  footer a { color: var(--text2); text-decoration: none; }
+  @media (max-width: 480px) { .page { padding: 1.5rem 1rem 3rem; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0d0d0d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 01-8 0"/>
+        </svg>
+      </div>
+      <div class="logo-name">Smart Cart</div>
+    </div>
+    <div class="logo-tag">Photo your shopping list or recipe — we'll fill your cart instantly.</div>
+  </header>
+
+  <div class="steps">
+    <div class="step-dot active" id="s1">1</div>
+    <div class="step-line"></div>
+    <div class="step-dot" id="s2">2</div>
+    <div class="step-line"></div>
+    <div class="step-dot" id="s3">3</div>
+    <div class="step-line"></div>
+    <div class="step-dot" id="s4">4</div>
+  </div>
+
+  <div class="card-label">Your list or recipe</div>
+  <div class="upload-zone">
+    <div class="upload-icon-wrap">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </div>
+    <div class="upload-title">Tap to take a photo or upload</div>
+    <div class="upload-sub">Shopping list, recipe, or handwritten notes<br><span>JPG, PNG, HEIC supported</span></div>
+    <input type="file" accept="image/*" capture="environment" id="fileInput" onchange="handleFile(event)" />
+  </div>
+
+  <div id="previewWrap"><img id="previewImg" alt="Uploaded image" /></div>
+  <div id="statusMsg" class="status"></div>
+
+  <div id="analyseSection" style="display:none;margin-bottom:1rem;">
+    <button class="btn btn-accent" id="analyseBtn" onclick="analyzeImage()">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Extract items with AI
+    </button>
+  </div>
+
+  <div id="itemsSection" style="display:none;">
+    <div class="divider"></div>
+    <div class="card-label">Detected items — select to add</div>
+    <div class="items-wrap" id="itemsList"></div>
+    <button class="btn btn-accent" id="cartBtn" onclick="searchAndAddToCart()">
+      <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      Search store &amp; add to cart
+    </button>
+  </div>
+
+  <div id="cartSection" style="display:none;">
+    <div class="divider"></div>
+    <div class="cart-box">
+      <div class="cart-box-title">Cart ready</div>
+      <div class="cart-box-val" id="cartSummary"></div>
+    </div>
+    <button class="btn btn-teal" onclick="openCart()">
+      <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open cart &amp; checkout
+    </button>
+  </div>
+
+  <footer>Powered by <a href="https://anthropic.com" target="_blank">Claude AI</a> + Shopify</footer>
+</div>
+
+<script>
+  let imageBase64 = null, imageType = 'image/jpeg';
+  let extractedItems = [], checkoutUrl = null;
+
+  function setStep(n) {
+    [1,2,3,4].forEach(i => {
+      const el = document.getElementById('s'+i);
+      if(i<n){el.className='step-dot done';el.innerHTML='✓';}
+      else if(i===n){el.className='step-dot active';el.innerHTML=i;}
+      else{el.className='step-dot';el.innerHTML=i;}
+    });
+  }
+
+  function showStatus(msg, type='info') {
+    const el = document.getElementById('statusMsg');
+    el.className = 'status '+type;
+    if(type==='info') el.innerHTML = `<div class="spinner"></div><span>${msg}</span>`;
+    else el.textContent = msg;
+  }
+  function hideStatus(){ const el=document.getElementById('statusMsg'); el.style.display='none'; el.className='status'; }
+
+  function handleFile(e) {
+    const file = e.target.files[0]; if(!file) return;
+    imageType = file.type || 'image/jpeg';
+    const reader = new FileReader();
+    reader.onload = ev => {
+      imageBase64 = ev.target.result.split(',')[1];
+      document.getElementById('previewImg').src = ev.target.result;
+      document.getElementById('previewWrap').style.display = 'block';
+      document.getElementById('analyseSection').style.display = 'block';
+      document.getElementById('itemsSection').style.display = 'none';
+      document.getElementById('cartSection').style.display = 'none';
+      hideStatus(); setStep(2);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function analyzeImage() {
+    if(!imageBase64) return showStatus('Please upload an image first.','error');
+    const btn = document.getElementById('analyseBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Reading your list…';
+    showStatus('Analysing image with AI vision…','info'); setStep(2);
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model:'claude-sonnet-4-20250514', max_tokens:1000,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:imageType,data:imageBase64}},
+            {type:'text',text:`Extract all items from this shopping list or recipe image. Return ONLY valid JSON, no markdown:
+{"items":[{"name":"product name","quantity":1,"unit":"pcs"}]}
+Be specific with names. Quantity must be a number. Unit is optional.`}
+          ]}]
+        })
+      });
+      if(!resp.ok){ const e=await resp.json().catch(()=>({})); throw new Error(e?.error?.message||`API error ${resp.status}`); }
+      const data = await resp.json();
+      const text = data.content.map(c=>c.text||'').join('');
+      const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
+      extractedItems = parsed.items||[];
+      if(!extractedItems.length) throw new Error('No items found. Try a clearer photo.');
+      renderItems();
+      document.getElementById('itemsSection').style.display='block';
+      setStep(3);
+      showStatus(`Found ${extractedItems.length} item${extractedItems.length!==1?'s':''}. Deselect any you don\'t need.`,'success');
+    } catch(err){ showStatus('Error: '+(err.message||'Could not read image.'),'error'); }
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Re-extract items';
+  }
+
+  function renderItems() {
+    document.getElementById('itemsList').innerHTML = extractedItems.map((item,i)=>`
+      <div class="item-row">
+        <input type="checkbox" class="item-check" id="chk${i}" checked />
+        <label class="item-name" for="chk${i}">${item.name}</label>
+        ${item.quantity?`<span class="item-qty">${item.quantity}${item.unit?' '+item.unit:''}</span>`:''}
+        <span class="item-tag" id="tag${i}"></span>
+      </div>`).join('');
+  }
+
+  async function callBackend(body) {
+    const resp = await fetch('/api/shopify', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    if(!resp.ok){ const e=await resp.json().catch(()=>({})); throw new Error(e?.error||`Server error ${resp.status}`); }
+    return resp.json();
+  }
+
+  async function searchAndAddToCart() {
+    const checkedItems = extractedItems.filter((_,i)=>document.getElementById('chk'+i)?.checked);
+    if(!checkedItems.length) return showStatus('Select at least one item.','error');
+    const btn = document.getElementById('cartBtn');
+    btn.disabled=true;
+    btn.innerHTML='<div class="spinner"></div> Searching your store…';
+    showStatus('Searching products in your store…','info');
+
+    const cartItems = [];
+    for(let i=0;i<extractedItems.length;i++){
+      if(!document.getElementById('chk'+i)?.checked) continue;
+      const item = extractedItems[i];
+      const tag = document.getElementById('tag'+i);
+      tag.className='item-tag searching'; tag.textContent='searching…';
+      try {
+        const result = await callBackend({action:'search', query:item.name});
+        if(result.found && result.available){
+          cartItems.push({variantId:result.variantId, quantity:Math.max(1,Math.round(item.quantity||1)), name:result.title});
+          tag.className='item-tag found'; tag.textContent='✓ found';
+        } else if(result.found && !result.available){
+          tag.className='item-tag not-found'; tag.textContent='out of stock';
+        } else {
+          tag.className='item-tag not-found'; tag.textContent='not found';
+        }
+      } catch(err){ tag.className='item-tag not-found'; tag.textContent='error'; }
+    }
+
+    if(!cartItems.length){
+      btn.disabled=false;
+      btn.innerHTML='Retry — no items matched';
+      return showStatus('No matching products found. Make sure products are active in your store.','error');
+    }
+
+    showStatus('Creating your cart…','info');
+    try {
+      const result = await callBackend({action:'createCart', cartItems});
+      if(!result.success) throw new Error('Cart creation failed');
+      checkoutUrl = result.checkoutUrl;
+      const found=cartItems.length, total=checkedItems.length;
+      document.getElementById('cartSummary').textContent =
+        `${found} of ${total} item${total!==1?'s':''} added${total-found>0?` (${total-found} not found)`:'!'}`;
+      document.getElementById('cartSection').style.display='block';
+      setStep(4);
+      showStatus(`Cart ready with ${found} item${found!==1?'s':''}!`,'success');
+    } catch(err){ showStatus('Cart error: '+err.message,'error'); }
+
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg> Search store & add to cart';
+  }
+
+  function openCart(){ if(checkoutUrl) window.open(checkoutUrl,'_blank'); }
+</script>
+</body>
+</html>
