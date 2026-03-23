@@ -48,7 +48,7 @@
   .upload-sub { font-size: 13px; color: var(--text2); }
   .upload-sub span { color: var(--accent); }
   #previewWrap { display: none; margin-bottom: 1rem; }
-  #previewImg { width: 100%; max-height: 220px; object-fit: contain; border-radius: var(--r); border: 1px solid var(--border); background: var(--surface2); }
+  #previewImg { width: 100%; max-height: 200px; object-fit: contain; border-radius: var(--r); border: 1px solid var(--border); background: var(--surface2); }
   .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px 20px; border-radius: var(--r); font-family: var(--ff); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); }
   .btn:hover { background: var(--surface); }
   .btn:active { transform: scale(0.98); }
@@ -62,22 +62,54 @@
   .status.info { background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; gap: 8px; }
   .status.error { background: var(--red-dim); color: var(--red); display: block; }
   .status.success { background: var(--teal-dim); color: var(--teal); display: flex; align-items: center; gap: 8px; }
-  .items-wrap { margin-bottom: 1rem; }
-  .item-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--border); }
-  .item-row:last-child { border-bottom: none; }
-  .item-check { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
-  .item-name { flex: 1; font-size: 14px; color: var(--text); }
-  .item-qty { font-family: var(--ff-mono); font-size: 11px; color: var(--text3); background: var(--surface2); padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
-  .item-tag { font-size: 11px; padding: 2px 9px; border-radius: 20px; flex-shrink: 0; }
-  .item-tag.found { background: var(--teal-dim); color: var(--teal); }
-  .item-tag.not-found { background: var(--amber-dim); color: var(--amber); }
-  .item-tag.searching { background: var(--accent-dim); color: var(--accent); }
-  .cart-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 1rem; }
-  .cart-box-title { font-size: 12px; color: var(--text3); margin-bottom: 4px; }
-  .cart-box-val { font-family: var(--ff-head); font-size: 18px; color: var(--text); }
   .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
   .spinner { width: 15px; height: 15px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.65s linear infinite; flex-shrink: 0; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Item cards with product images ── */
+  .items-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1rem; }
+  .item-card {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); padding: 12px; transition: border 0.2s;
+  }
+  .item-card.selected { border-color: var(--accent); }
+  .item-card.matched { border-color: rgba(61,217,164,0.3); }
+  .item-thumb {
+    width: 56px; height: 56px; border-radius: var(--r); object-fit: cover;
+    background: var(--surface2); flex-shrink: 0; border: 1px solid var(--border);
+  }
+  .item-thumb-placeholder {
+    width: 56px; height: 56px; border-radius: var(--r);
+    background: var(--surface2); flex-shrink: 0; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .item-thumb-placeholder svg { width: 20px; height: 20px; stroke: var(--text3); fill: none; stroke-width: 1.5; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-extracted { font-size: 12px; color: var(--text3); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-matched { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-price { font-family: var(--ff-mono); font-size: 12px; color: var(--accent); margin-top: 2px; }
+  .item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+  .item-check { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; }
+  .item-tag { font-size: 11px; padding: 2px 9px; border-radius: 20px; }
+  .item-tag.found { background: var(--teal-dim); color: var(--teal); }
+  .item-tag.not-found { background: var(--amber-dim); color: var(--amber); }
+  .item-tag.searching { background: var(--accent-dim); color: var(--accent); }
+  .item-qty { font-family: var(--ff-mono); font-size: 11px; color: var(--text3); background: var(--surface2); padding: 2px 7px; border-radius: 20px; }
+
+  /* ── Cart summary ── */
+  .cart-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 1rem; }
+  .cart-box-title { font-size: 12px; color: var(--text3); margin-bottom: 4px; }
+  .cart-box-val { font-family: var(--ff-head); font-size: 18px; color: var(--text); }
+
+  /* ── Share box ── */
+  .share-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 1rem; }
+  .share-label { font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+  .share-url { display: flex; gap: 8px; }
+  .share-url input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 8px 12px; color: var(--text2); font-family: var(--ff-mono); font-size: 12px; outline: none; }
+  .share-url button { padding: 8px 14px; border-radius: var(--r); border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+  .share-url button:hover { background: var(--surface); }
+
   footer { margin-top: 3rem; text-align: center; font-size: 12px; color: var(--text3); }
   footer a { color: var(--text2); text-decoration: none; }
   @media (max-width: 480px) { .page { padding: 1.5rem 1rem 3rem; } }
@@ -96,7 +128,7 @@
       </div>
       <div class="logo-name">Smart Cart</div>
     </div>
-    <div class="logo-tag">Photo your shopping list or recipe — we'll fill your cart instantly.</div>
+    <div class="logo-tag">Photo your shopping list or product — we'll fill your cart instantly.</div>
   </header>
 
   <div class="steps">
@@ -109,13 +141,13 @@
     <div class="step-dot" id="s4">4</div>
   </div>
 
-  <div class="card-label">Your list or recipe</div>
+  <div class="card-label">Your list, recipe or product photo</div>
   <div class="upload-zone">
     <div class="upload-icon-wrap">
       <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
     </div>
     <div class="upload-title">Tap to take a photo or upload</div>
-    <div class="upload-sub">Shopping list, recipe, or handwritten notes<br><span>JPG, PNG, HEIC supported</span></div>
+    <div class="upload-sub">Shopping list, recipe, product label, or screenshot<br><span>JPG, PNG, HEIC supported</span></div>
     <input type="file" accept="image/*" capture="environment" id="fileInput" onchange="handleFile(event)" />
   </div>
 
@@ -132,10 +164,10 @@
   <div id="itemsSection" style="display:none;">
     <div class="divider"></div>
     <div class="card-label">Detected items — select to add</div>
-    <div class="items-wrap" id="itemsList"></div>
+    <div class="items-grid" id="itemsGrid"></div>
     <button class="btn btn-accent" id="cartBtn" onclick="searchAndAddToCart()">
       <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-      Search store &amp; add to cart
+      Match &amp; add to cart
     </button>
   </div>
 
@@ -145,18 +177,28 @@
       <div class="cart-box-title">Cart ready</div>
       <div class="cart-box-val" id="cartSummary"></div>
     </div>
-    <button class="btn btn-teal" onclick="openCart()">
+    <button class="btn btn-teal" style="margin-bottom:1rem;" onclick="openCart()">
       <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       Open cart &amp; checkout
     </button>
+    <div class="share-box">
+      <div class="share-label">Share this app with customers</div>
+      <div class="share-url">
+        <input type="text" id="shareUrl" readonly />
+        <button onclick="copyLink()">Copy link</button>
+      </div>
+    </div>
   </div>
 
-  <footer>Powered by <a href="https://anthropic.com" target="_blank">Claude AI</a> + Shopify</footer>
+  <footer>Powered by <a href="https://anthropic.com" target="_blank">Claude AI</a> + Shopify · <a href="https://cchairandbeauty.com" target="_blank">CC Hair & Beauty</a></footer>
 </div>
 
 <script>
   let imageBase64 = null, imageType = 'image/jpeg';
   let extractedItems = [], checkoutUrl = null;
+
+  // Set share URL
+  document.getElementById('shareUrl').value = window.location.href;
 
   function setStep(n) {
     [1,2,3,4].forEach(i => {
@@ -208,7 +250,7 @@
     if(!imageBase64) return showStatus('Please upload an image first.', 'error');
     const btn = document.getElementById('analyseBtn');
     btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div> Reading your list…';
+    btn.innerHTML = '<div class="spinner"></div> Reading your image…';
     showStatus('Analysing image with AI vision…', 'info'); setStep(2);
     try {
       const result = await callBackend({ action: 'analyse', imageBase64, imageType });
@@ -223,14 +265,31 @@
     btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Re-extract items';
   }
 
-  function renderItems() {
-    document.getElementById('itemsList').innerHTML = extractedItems.map((item,i) => `
-      <div class="item-row">
-        <input type="checkbox" class="item-check" id="chk${i}" checked />
-        <label class="item-name" for="chk${i}">${item.name}</label>
-        ${item.quantity ? `<span class="item-qty">${item.quantity}${item.unit?' '+item.unit:''}</span>` : ''}
-        <span class="item-tag" id="tag${i}"></span>
-      </div>`).join('');
+  function renderItems(matches) {
+    const grid = document.getElementById('itemsGrid');
+    grid.innerHTML = extractedItems.map((item, i) => {
+      const match = matches ? matches[i] : null;
+      const hasImage = match?.image;
+      return `
+      <div class="item-card ${match ? (match.found ? 'matched' : '') : 'selected'}" id="card${i}">
+        ${hasImage
+          ? `<img class="item-thumb" src="${match.image}" alt="${match.matchedTitle}" onerror="this.style.display='none'" />`
+          : `<div class="item-thumb-placeholder"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>`
+        }
+        <div class="item-info">
+          <div class="item-extracted">${item.name}</div>
+          ${match?.found ? `<div class="item-matched">${match.matchedTitle}</div>` : `<div class="item-matched" style="color:var(--text2)">${item.name}</div>`}
+          ${match?.price ? `<div class="item-price">£${parseFloat(match.price).toFixed(2)}</div>` : ''}
+        </div>
+        <div class="item-right">
+          <input type="checkbox" class="item-check" id="chk${i}" ${match?.found !== false ? 'checked' : ''} />
+          ${item.quantity > 1 ? `<span class="item-qty">${item.quantity}${item.unit ? ' '+item.unit : ''}</span>` : ''}
+          <span class="item-tag ${match ? (match.found ? 'found' : 'not-found') : ''}" id="tag${i}">
+            ${match ? (match.found ? '✓ matched' : 'not found') : ''}
+          </span>
+        </div>
+      </div>`;
+    }).join('');
   }
 
   async function searchAndAddToCart() {
@@ -238,39 +297,35 @@
     if(!checkedItems.length) return showStatus('Select at least one item.', 'error');
     const btn = document.getElementById('cartBtn');
     btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div> Matching items with AI…';
+    btn.innerHTML = '<div class="spinner"></div> Finding products…';
     showStatus('AI is matching your items to products in your store…', 'info');
 
-    // Set all checked items to searching state
+    // Set all to searching
     extractedItems.forEach((_,i) => {
       if(!document.getElementById('chk'+i)?.checked) return;
       const tag = document.getElementById('tag'+i);
-      tag.className = 'item-tag searching'; tag.textContent = 'matching…';
+      if(tag){ tag.className='item-tag searching'; tag.textContent='matching…'; }
     });
 
     try {
-      // Send all selected items to backend for AI smart matching in one call
       const result = await callBackend({ action: 'smartMatch', items: checkedItems });
       const matches = result.matches || [];
 
-      // Update UI tags based on matches
-      let matchIndex = 0;
+      // Re-render with product images and match info
+      // Map matches back to full extractedItems array
+      let matchIdx = 0;
+      const fullMatches = extractedItems.map((_,i) => {
+        if(!document.getElementById('chk'+i)?.checked) return null;
+        return matches[matchIdx++] || null;
+      });
+      renderItems(fullMatches);
+
       const cartItems = [];
-      for(let i=0; i<extractedItems.length; i++) {
-        if(!document.getElementById('chk'+i)?.checked) continue;
-        const tag = document.getElementById('tag'+i);
-        const match = matches[matchIndex++];
-        if(!match) { tag.className='item-tag not-found'; tag.textContent='not found'; continue; }
-        if(match.found && match.available) {
-          tag.className = 'item-tag found';
-          tag.textContent = '✓ ' + (match.matchedTitle?.split(' ').slice(0,3).join(' ') || 'found');
+      fullMatches.forEach(match => {
+        if(match?.found && match?.available) {
           cartItems.push({ variantId: match.variantId, quantity: Math.max(1, Math.round(match.quantity||1)) });
-        } else if(match.found && !match.available) {
-          tag.className = 'item-tag not-found'; tag.textContent = 'out of stock';
-        } else {
-          tag.className = 'item-tag not-found'; tag.textContent = 'not found';
         }
-      }
+      });
 
       if(!cartItems.length) {
         btn.disabled = false;
@@ -284,18 +339,28 @@
       checkoutUrl = cartResult.checkoutUrl;
       const found = cartItems.length, total = checkedItems.length;
       document.getElementById('cartSummary').textContent =
-        `${found} of ${total} item${total!==1?'s':''} added${total-found>0 ? ` (${total-found} not in store)` : ' — all matched!'}`;
+        `${found} of ${total} item${total!==1?'s':''} added${total-found>0 ? ` · ${total-found} not in store` : ' · all matched!'}`;
       document.getElementById('cartSection').style.display = 'block';
+      document.getElementById('shareUrl').value = window.location.href;
       setStep(4);
       showStatus(`Cart ready with ${found} item${found!==1?'s':''}!`, 'success');
 
     } catch(err) { showStatus('Error: '+err.message, 'error'); }
 
     btn.disabled = false;
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg> Search store & add to cart';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg> Match & add to cart';
   }
 
   function openCart() { if(checkoutUrl) window.open(checkoutUrl, '_blank'); }
+
+  function copyLink() {
+    const url = document.getElementById('shareUrl').value;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.querySelector('.share-url button');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy link', 2000);
+    });
+  }
 </script>
 </body>
 </html>
