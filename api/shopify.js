@@ -47,24 +47,23 @@ Be specific. Quantity must be a number. Unit is optional. If no quantity visible
       return res.json({ items: parsed.items || [] });
     }
 
-    // ── AI smart match: fetch all products then let Claude match ──
+    // ── AI smart match ──
     if (action === 'smartMatch') {
       if (!SHOP_DOMAIN || !ADMIN_TOKEN) return res.status(500).json({ error: 'Shopify credentials not configured.' });
       if (!ANTHROPIC_KEY) return res.status(500).json({ error: 'Anthropic API key not configured.' });
 
-      // Fetch all active products including images
       const shopRes = await fetch(
-        `https://${SHOP_DOMAIN}/admin/api/2024-10/products.json?limit=250&status=active&fields=id,title,variants,images`,
+        `https://${SHOP_DOMAIN}/admin/api/2024-10/products.json?limit=250&status=active&fields=id,title,variants,images,handle`,
         { headers: { 'X-Shopify-Access-Token': ADMIN_TOKEN, 'Content-Type': 'application/json' } }
       );
       const shopData = await shopRes.json();
       const products = shopData.products || [];
-
       if (!products.length) return res.json({ matches: items.map(i => ({ name: i.name, found: false })) });
 
       const productList = products.map(p => ({
         id: p.id,
         title: p.title,
+        handle: p.handle,
         variantId: p.variants?.[0]?.id,
         price: p.variants?.[0]?.price,
         image: p.images?.[0]?.src || null,
@@ -86,7 +85,7 @@ Be specific. Quantity must be a number. Unit is optional. If no quantity visible
           max_tokens: 1000,
           messages: [{
             role: 'user',
-            content: `You are a smart beauty & haircare shopping assistant. Match each item from a shopping list to the best product in this store catalogue.
+            content: `You are a smart beauty & haircare shopping assistant. Match each item to the best product in this store.
 
 SHOPPING LIST:
 ${itemList}
@@ -94,11 +93,7 @@ ${itemList}
 STORE PRODUCTS:
 ${productCatalogue}
 
-Be flexible and intelligent with beauty/haircare products:
-- Match by brand, product type, or key ingredients
-- "leave in conditioner" matches "Cantu Leave-In Conditioning Cream"
-- "shea butter" matches any shea butter product
-- "curl cream" matches curl defining products
+Be flexible: "leave in conditioner" matches "Cantu Leave-In Conditioning Cream", "shea butter" matches any shea butter product.
 Only use -1 if genuinely nothing is related.
 
 Return ONLY valid JSON, no markdown:
@@ -122,6 +117,7 @@ Return ONLY valid JSON, no markdown:
           found: true,
           matchedTitle: product.title,
           variantId: product.variantId,
+          handle: product.handle,
           price: product.price,
           image: product.image,
           available: product.available,
@@ -132,25 +128,16 @@ Return ONLY valid JSON, no markdown:
       return res.json({ matches: results });
     }
 
-    // ── Create draft order (cart) ──
+    // ── Build cart URL (no write permissions needed!) ──
     if (action === 'createCart') {
-      if (!SHOP_DOMAIN || !ADMIN_TOKEN) return res.status(500).json({ error: 'Shopify credentials not configured.' });
-      const lineItems = cartItems.map(item => ({
-        variant_id: item.variantId,
-        quantity: item.quantity || 1
-      }));
-      const draftRes = await fetch(
-        `https://${SHOP_DOMAIN}/admin/api/2024-10/draft_orders.json`,
-        {
-          method: 'POST',
-          headers: { 'X-Shopify-Access-Token': ADMIN_TOKEN, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ draft_order: { line_items: lineItems } })
-        }
-      );
-      const draftData = await draftRes.json();
-      const draft = draftData.draft_order;
-      if (!draft) throw new Error(JSON.stringify(draftData));
-      return res.json({ success: true, checkoutUrl: draft.invoice_url, orderId: draft.id });
+      if (!SHOP_DOMAIN) return res.status(500).json({ error: 'Shopify domain not configured.' });
+
+      // Build Shopify cart URL using variant IDs and quantities
+      // Format: /cart/variantId:qty,variantId:qty
+      const cartParts = cartItems.map(item => `${item.variantId}:${item.quantity || 1}`).join(',');
+      const checkoutUrl = `https://${SHOP_DOMAIN}/cart/${cartParts}`;
+
+      return res.json({ success: true, checkoutUrl });
     }
 
     return res.status(400).json({ error: 'Unknown action' });
