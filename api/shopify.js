@@ -51,22 +51,36 @@ Be specific with names (e.g. "semi-skimmed milk" not just "milk"). Quantity must
     // ── Search products in Shopify ──
     if (action === 'search') {
       if (!SHOP_DOMAIN || !ADMIN_TOKEN) return res.status(500).json({ error: 'Shopify credentials not configured.' });
-      const searchRes = await fetch(
-        `https://${SHOP_DOMAIN}/admin/api/2024-10/products.json?title=${encodeURIComponent(query)}&limit=1&status=active`,
-        { headers: { 'X-Shopify-Access-Token': ADMIN_TOKEN, 'Content-Type': 'application/json' } }
-      );
-      const data = await searchRes.json();
-      const product = data.products?.[0];
-      if (!product) return res.json({ found: false });
-      const variant = product.variants?.[0];
-      return res.json({
-        found: true,
-        productId: product.id,
-        title: product.title,
-        variantId: variant?.id,
-        price: variant?.price,
-        available: variant?.inventory_quantity > 0 || variant?.inventory_management === null
-      });
+
+      // Try progressively shorter search terms for better matching
+      const words = query.split(' ').filter(w => w.length > 2);
+      const searchTerms = [
+        query,                              // full name
+        words.slice(0, 4).join(' '),        // first 4 words
+        words.slice(0, 3).join(' '),        // first 3 words
+        words.slice(0, 2).join(' '),        // first 2 words
+      ];
+
+      for (const term of searchTerms) {
+        const searchRes = await fetch(
+          `https://${SHOP_DOMAIN}/admin/api/2024-10/products.json?title=${encodeURIComponent(term)}&limit=5&status=active`,
+          { headers: { 'X-Shopify-Access-Token': ADMIN_TOKEN, 'Content-Type': 'application/json' } }
+        );
+        const data = await searchRes.json();
+        const product = data.products?.[0];
+        if (product) {
+          const variant = product.variants?.[0];
+          return res.json({
+            found: true,
+            productId: product.id,
+            title: product.title,
+            variantId: variant?.id,
+            price: variant?.price,
+            available: variant?.inventory_quantity > 0 || variant?.inventory_management === null
+          });
+        }
+      }
+      return res.json({ found: false });
     }
 
     // ── Create draft order (cart) ──
